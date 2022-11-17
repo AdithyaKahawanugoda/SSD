@@ -82,6 +82,8 @@ const Worker = () => {
           display: "flex",
           flexDirection: "column",
           paddingRight: "5vw",
+          textAlign: "center",
+          paddingLeft: "5vw",
         }}
       >
         <h1
@@ -112,7 +114,7 @@ const Worker = () => {
           <img
             src={userData.profilePicture}
             alt="profilePic"
-            referrerpolicy="no-referrer"
+            referrerPolicy="no-referrer"
             style={{ alignSelf: "center", borderRadius: "50%" }}
           />
         )}

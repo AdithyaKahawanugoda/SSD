@@ -8,14 +8,18 @@ import BarLoader from "react-spinners/BarLoader";
 import { BASE_URL } from "../../constants";
 import { logoutHandler } from "../../services/api";
 import sha256 from "crypto-js/sha256";
-import CryptoJS from "crypto-js";
 import { ToastContainer, toast } from "react-toastify";
-import publicKey from "../../rsa_2048_public_key.pem";
+import { JSEncrypt } from "jsencrypt";
 import axios from "axios";
 
 const SaveText = () => {
   const [plainText, setPlainText] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+
+  const publicKey =
+    "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA1ktKNzJBXJirtXBhxjSX36sjLb7ba9qpuKueJmfS+AaYSXI6WvQCZaw3GcjTQrbWlzs0AV0tz76FTXMbVFvfuTpNT9ZqWkkntN/hJ5AvptfOV8jMxDfR1oDSy+uD1IGKhyfsK5+nL5zNwJmVIm9KyiZA2hXHmNr22CmEV+Y/Jhi9hPYQuYa62dPbwooCJL2CQgNOitzxsIA5UflxOZ37BnAkUIcuXwyMN/PIWclRDDWqJmYTAcq24eyVVmjIi+EGGec8m+hGBUM8rnCRpPxaOzSS2u6FzDwU68X3v7tZNly2Lf1usQ4f01hrQArIFcotMCna9ZT/RcweQDc7ApMMWQIDAQAB";
+  const encrypt = new JSEncrypt();
+  encrypt.setPublicKey(publicKey);
 
   const uploadToast = (text) => {
     toast.success(text, {
@@ -52,66 +56,33 @@ const SaveText = () => {
         withCredentials: true,
       };
       setIsLoading(true);
-      let hashedText = sha256(plainText);
-      let dataObj = {
+
+      const hashedText = sha256(plainText);
+      const dataObj = {
         msg: plainText,
         hash: hashedText,
       };
-      const encrypted = crypto.publicEncrypt(publicKey, Buffer.from(dataObj));
-      const cipherObj = encrypted.toString("base64");
+      const stringifiedObj = JSON.stringify(dataObj);
+      const encryptedObj = encrypt.encrypt(stringifiedObj);
+
       await axios
         .post(
           `${BASE_URL}/message/verifyAndSave`,
-          { dataObj: cipherObj },
+          { dataObj: encryptedObj },
           config
         )
         .then((res) => {
-          console.log(res);
+          if (res.status === 401) {
+            logoutToast();
+            logoutHandler();
+          }
+          uploadToast("Encrypted Data Saved On Database");
+          setIsLoading(false);
         })
         .catch((err) => {
-          console.log(err);
+          alert(err.response.data.msg);
+          setIsLoading(false);
         });
-      // await axios
-      //   .post(
-      //     `${BASE_URL}/message/saveHash`,
-      //     {
-      //       hash: hashedText,
-      //     },
-      //     config
-      //   )
-      //   .then((res) => {
-      //     if (res.status === 401) {
-      //       logoutToast();
-      //       logoutHandler();
-      //     }
-      //     uploadToast("Hash Saved On Database");
-      //     axios
-      //       .post(
-      //         `${BASE_URL}/message/saveMessage`,
-      //         {
-      //           content: plainText,
-      //           objId: res?.data?._id,
-      //         },
-      //         config
-      //       )
-      //       .then((res) => {
-      //         uploadToast(res.data.msg);
-      //         setPlainText("");
-      //         setIsLoading(false);
-      //         if (res.status === 401) {
-      //           logoutToast();
-      //           logoutHandler();
-      //         }
-      //       })
-      //       .catch((error) => {
-      //         alert(error.response.data.msg);
-      //         setIsLoading(false);
-      //       });
-      //   })
-      //   .catch((error) => {
-      //     alert(error.response.data.msg);
-      //     setIsLoading(false);
-      //   });
     }
   };
 

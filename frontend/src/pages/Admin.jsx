@@ -56,6 +56,8 @@ const Admin = () => {
         style={{
           display: "flex",
           flexDirection: "column",
+          textAlign: "center",
+          paddingLeft: "5vw",
         }}
       >
         <h1
@@ -86,7 +88,7 @@ const Admin = () => {
           <img
             src={userData.profilePicture}
             alt="profilePic"
-            referrerpolicy="no-referrer"
+            referrerPolicy="no-referrer"
             style={{ alignSelf: "center", borderRadius: "50%" }}
           />
         )}

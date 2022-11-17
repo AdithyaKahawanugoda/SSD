@@ -68,7 +68,6 @@ exports.login = async (req, res, next) => {
 };
 
 exports.loginSuccess = async (req, res, next) => {
-  console.log(req.user, "1234555");
   if (req.user) {
     const user = await UserModel.findOne({ email: req.user.email }).select(
       "+password"
@@ -100,7 +99,7 @@ exports.logout = async (req, res) => {
     if (err) {
       return next(err);
     }
-    res.redirect(process.env.CLIENT_BASE_URL);
+    return res.redirect(process.env.CLIENT_BASE_URL);
   });
 };
 

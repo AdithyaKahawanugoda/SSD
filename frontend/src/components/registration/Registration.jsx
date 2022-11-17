@@ -61,7 +61,6 @@ const Registration = ({ sectionNavigator }) => {
   };
 
   const accountTypeInputHandler = (accType) => {
-    console.log(accType);
     if (accType === "WORKER" || accType === "MANAGER") {
       setAccountType(accType);
     }

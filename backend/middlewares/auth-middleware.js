@@ -39,7 +39,6 @@ exports.protectedWorker = async (req, res, next) => {
       if (!user) {
         noUserResponse(res);
       } else if (user.accountType !== "WORKER") {
-        console.log(user.accountType);
         accessDeniedResponse(res);
       } else {
         req.user = user;
@@ -65,7 +64,6 @@ exports.protectedManager = async (req, res, next) => {
       if (!user) {
         noUserResponse(res);
       } else if (user.accountType !== "MANAGER") {
-        console.log(user.accountType);
         accessDeniedResponse(res);
       } else {
         req.user = user;
@@ -94,7 +92,6 @@ exports.protectedWorkerOrManager = async (req, res, next) => {
         user.accountType !== "WORKER" &&
         user.accountType !== "MANAGER"
       ) {
-        console.log("protectedWorkerOrManager" + user.accountType);
         accessDeniedResponse(res);
       } else {
         req.user = user;
