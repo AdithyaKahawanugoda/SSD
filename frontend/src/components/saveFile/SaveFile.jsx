@@ -8,6 +8,8 @@ import { BASE_URL } from "../../constants";
 import { logoutHandler } from "../../services/api";
 import sha256 from "crypto-js/sha256";
 import { ToastContainer, toast } from "react-toastify";
+import CryptoJS from "crypto-js";
+import { JSEncrypt } from "jsencrypt";
 import axios from "axios";
 // Import React FilePond
 import { FilePond, registerPlugin } from "react-filepond";
@@ -26,6 +28,11 @@ registerPlugin(
 const SaveFile = () => {
   const [file, setFile] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
+
+  const publicKey =
+    "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA1ktKNzJBXJirtXBhxjSX36sjLb7ba9qpuKueJmfS+AaYSXI6WvQCZaw3GcjTQrbWlzs0AV0tz76FTXMbVFvfuTpNT9ZqWkkntN/hJ5AvptfOV8jMxDfR1oDSy+uD1IGKhyfsK5+nL5zNwJmVIm9KyiZA2hXHmNr22CmEV+Y/Jhi9hPYQuYa62dPbwooCJL2CQgNOitzxsIA5UflxOZ37BnAkUIcuXwyMN/PIWclRDDWqJmYTAcq24eyVVmjIi+EGGec8m+hGBUM8rnCRpPxaOzSS2u6FzDwU68X3v7tZNly2Lf1usQ4f01hrQArIFcotMCna9ZT/RcweQDc7ApMMWQIDAQAB";
+  const encrypt = new JSEncrypt();
+  encrypt.setPublicKey(publicKey);
 
   const encodeFile = () => {
     if (file[0]) {
@@ -59,10 +66,21 @@ const SaveFile = () => {
     });
   };
 
+  const makeId = (length) => {
+    let result = "";
+    let characters =
+      "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+    let charactersLength = characters.length;
+    for (var i = 0; i < length; i++) {
+      result += characters.charAt(Math.floor(Math.random() * charactersLength));
+    }
+    return result;
+  };
+
   const uploadHandler = async () => {
     setIsLoading(true);
     let fileEncodeDataURL = encodeFile();
-    let hash = sha256(fileEncodeDataURL.data);
+    let hash = sha256(fileEncodeDataURL);
     const config = {
       headers: {
         Authorization: `Bearer ${localStorage.getItem("authToken")}`,
@@ -71,12 +89,31 @@ const SaveFile = () => {
     };
 
     if (fileEncodeDataURL && hash) {
+      const dataObj = {
+        encodedFile: fileEncodeDataURL,
+        hash,
+      };
+      const stringifiedObj = JSON.stringify(dataObj);
+      console.log(stringifiedObj);
+
+      const aesKeyLength = Math.random() * 10;
+      console.log(aesKeyLength, "aesKeyLength");
+      const aesKey = makeId(aesKeyLength);
+      console.log(aesKey, "aesKey");
+      const encryptedAESKey = encrypt.encrypt(aesKey);
+      console.log(encryptedAESKey, "encryptedAESKey");
+      const aesEncryptedObj = CryptoJS.AES.encrypt(
+        stringifiedObj,
+        aesKey
+      ).toString();
+      console.log(aesEncryptedObj, "aesEncryptedObj");
+      // const encryptedObj = encrypt.encrypt(aesEncryptedObj);
+      // console.log(encryptedObj);
+
       await axios
         .post(
-          `${BASE_URL}/file/saveHash`,
-          {
-            hash,
-          },
+          `${BASE_URL}/file/saveFile`,
+          { dataObj: aesEncryptedObj, encryptedAESKey },
           config
         )
         .then((res) => {
@@ -84,31 +121,11 @@ const SaveFile = () => {
             logoutToast();
             logoutHandler();
           }
-          uploadToast("Hash Saved On Database");
-          axios
-            .post(
-              `${BASE_URL}/file/saveFile`,
-              {
-                encodedFile: fileEncodeDataURL,
-                objId: res?.data?._id,
-              },
-              config
-            )
-            .then((res) => {
-              uploadToast(res.data.msg);
-              setIsLoading(false);
-              if (res.status === 401) {
-                logoutToast();
-                logoutHandler();
-              }
-            })
-            .catch((error) => {
-              alert(error.response.data.msg);
-              setIsLoading(false);
-            });
+          uploadToast("Encrypted Data Saved On Database");
+          setIsLoading(false);
         })
-        .catch((error) => {
-          alert(error.response.data.msg);
+        .catch((err) => {
+          alert(err.response.data.msg);
           setIsLoading(false);
         });
     }

@@ -1,11 +1,14 @@
 const express = require("express");
 const router = express.Router();
-const { saveFile, saveHash } = require("../controllers/file-controller");
+const {
+  saveFile,
+  decryptTestEndpoint,
+} = require("../controllers/file-controller");
 
 const { protectedManager } = require("../middlewares/auth-middleware");
 
-router.route("/saveFile").post(saveFile);
-router.route("/saveHash").post(protectedManager, saveHash);
+router.route("/saveFile").post(protectedManager, saveFile);
+router.route("/decrypt").get(decryptTestEndpoint);
 
 module.exports = router;
 

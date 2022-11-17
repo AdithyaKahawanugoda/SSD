@@ -2,17 +2,47 @@ const FileModel = require("../models/file-model");
 const { cloudinary } = require("../utils/cloudinary");
 const SHA256 = require("crypto-js/sha256");
 const CryptoJS = require("crypto-js");
+const crypto = require("crypto");
+const fs = require("fs");
 
 exports.saveFile = async (req, res) => {
-  const { encodedFile, objId } = req.body;
+  const { dataObj, encryptedAESKey } = req.body;
   const senderEmail = req.user.email;
+  const privateKey = fs.readFileSync("./rsa_2048_private_key.pem", "utf8");
+  const buffer = Buffer.from(encryptedAESKey, "base64");
+  const decrypted = crypto.privateDecrypt(
+    {
+      key: privateKey.toString(),
+      passphrase: "",
+      padding: crypto.constants.RSA_PKCS1_PADDING,
+    },
+    buffer
+  );
+  const decryptedAESKey = decrypted.toString("utf8");
+  console.log(decryptedAESKey, "decryptedAESKey");
+  console.log(dataObj, "dataObj");
+
+  // decrypt dataObj
+  const decryptedObj = JSON.parse(
+    CryptoJS.AES.decrypt(dataObj, decryptedAESKey).toString(CryptoJS.enc.Utf8)
+  );
+
+  console.log(decryptedObj);
+
+  // integrity check
+  const fileEncodeDataURL = decryptedObj.encodedFile;
+  const hashFromFE = JSON.stringify(decryptedObj.hash.words);
+  const fileEncodeDataURLHash = JSON.stringify(SHA256(fileEncodeDataURL).words);
+  console.log("INTEGRITY CHK DONE");
+  console.log("hashFromFE", hashFromFE);
+  console.log("fileEncodeDataURLHash", fileEncodeDataURLHash);
+  console.log(hashFromFE === fileEncodeDataURLHash);
   try {
-    const integrityCheckResult = await integrityCheck(objId, encodedFile.data);
-    if (integrityCheckResult) {
-      const uploadRes = await cloudinary.uploader.upload(encodedFile, {
+    if (hashFromFE === fileEncodeDataURLHash) {
+      console.log("INTEGRITY CHK PASS");
+      const uploadRes = await cloudinary.uploader.upload(fileEncodeDataURL, {
         upload_preset: "ssd_files_directory",
       });
-      console.log(uploadRes);
       const encryptedPublicId = encryptText(uploadRes.public_id);
       const encryptedSecureURL = encryptText(uploadRes.secure_url);
       await FileModel.create({
@@ -31,18 +61,17 @@ exports.saveFile = async (req, res) => {
   }
 };
 
-exports.saveHash = async (req, res) => {
-  const { hash } = req.body;
-  const senderEmail = req.user.email;
+exports.decryptTestEndpoint = async (req, res) => {
+  const { cipherText } = req.body;
   try {
-    const resObj = await FileModel.create({
-      hash,
-      senderEmail,
-    });
-    return res.status(201).json(resObj);
+    const decryptedText = CryptoJS.AES.decrypt(
+      cipherText,
+      process.env.ENCRYPTION_KEY
+    ).toString(CryptoJS.enc.Utf8);
+    return res.status(201).json(decryptedText);
   } catch (error) {
     return res.status(500).json({
-      msg: "Error in saveHash controller-" + error,
+      msg: "Error in decryptTestEndpoint controller-" + error,
     });
   }
 };
@@ -53,17 +82,4 @@ const encryptText = (data) => {
     process.env.ENCRYPTION_KEY
   ).toString();
   return encryptedText;
-};
-
-const integrityCheck = async (objId, dataString) => {
-  const hashStringify = JSON.stringify(SHA256(dataString).words);
-  try {
-    const savedHashDoc = await FileModel.findById({ _id: objId });
-    const savedHashStringify = JSON.stringify(savedHashDoc.hash.words);
-    return hashStringify === savedHashStringify;
-  } catch (error) {
-    return res
-      .status(400)
-      .json({ msg: "Error in integrityCheck controller-" + error });
-  }
 };
