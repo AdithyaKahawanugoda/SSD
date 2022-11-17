@@ -19,27 +19,19 @@ exports.saveFile = async (req, res) => {
     buffer
   );
   const decryptedAESKey = decrypted.toString("utf8");
-  console.log(decryptedAESKey, "decryptedAESKey");
-  console.log(dataObj, "dataObj");
 
   // decrypt dataObj
   const decryptedObj = JSON.parse(
     CryptoJS.AES.decrypt(dataObj, decryptedAESKey).toString(CryptoJS.enc.Utf8)
   );
 
-  console.log(decryptedObj);
-
   // integrity check
   const fileEncodeDataURL = decryptedObj.encodedFile;
   const hashFromFE = JSON.stringify(decryptedObj.hash.words);
   const fileEncodeDataURLHash = JSON.stringify(SHA256(fileEncodeDataURL).words);
-  console.log("INTEGRITY CHK DONE");
-  console.log("hashFromFE", hashFromFE);
-  console.log("fileEncodeDataURLHash", fileEncodeDataURLHash);
-  console.log(hashFromFE === fileEncodeDataURLHash);
+
   try {
     if (hashFromFE === fileEncodeDataURLHash) {
-      console.log("INTEGRITY CHK PASS");
       const uploadRes = await cloudinary.uploader.upload(fileEncodeDataURL, {
         upload_preset: "ssd_files_directory",
       });

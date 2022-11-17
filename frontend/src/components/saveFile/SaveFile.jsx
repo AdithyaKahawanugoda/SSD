@@ -94,22 +94,13 @@ const SaveFile = () => {
         hash,
       };
       const stringifiedObj = JSON.stringify(dataObj);
-      console.log(stringifiedObj);
-
       const aesKeyLength = Math.random() * 10;
-      console.log(aesKeyLength, "aesKeyLength");
       const aesKey = makeId(aesKeyLength);
-      console.log(aesKey, "aesKey");
       const encryptedAESKey = encrypt.encrypt(aesKey);
-      console.log(encryptedAESKey, "encryptedAESKey");
       const aesEncryptedObj = CryptoJS.AES.encrypt(
         stringifiedObj,
         aesKey
       ).toString();
-      console.log(aesEncryptedObj, "aesEncryptedObj");
-      // const encryptedObj = encrypt.encrypt(aesEncryptedObj);
-      // console.log(encryptedObj);
-
       await axios
         .post(
           `${BASE_URL}/file/saveFile`,
