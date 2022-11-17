@@ -1,0 +1,14 @@
+* {
+  padding: 0;
+  margin: 0;
+  box-sizing: border-box;
+  scroll-behavior: smooth;
+  cursor: default;
+}
+
+html {
+  min-height: 100vh;
+}
+body {
+  margin: 0 auto;
+}

@@ -1,0 +1,50 @@
+.login-component-container {
+  padding: 0 10% 0 10%;
+}
+#demo-row-radio-buttons-group-label {
+  color: white;
+  font-family: var(--font-family);
+  font-weight: 400;
+  font-size: 1em;
+}
+.login-component-acc-type-container {
+  min-width: 30vw;
+  margin-bottom: 2vh;
+  border-radius: 5%;
+  color: white;
+}
+.login-component-email-container {
+  min-width: 30vw;
+  margin-bottom: 2vh;
+  border-radius: 5%;
+  color: red;
+}
+.login-component-username-container {
+  min-width: 30vw;
+  margin-bottom: 2vh;
+  border-radius: 5%;
+  color: red;
+}
+.login-component-password-container {
+  min-width: 30vw;
+  width: "full";
+  margin-bottom: 5vh;
+  border-radius: 5%;
+  color: red;
+}
+.login-component-login-btn {
+  min-width: 30vw;
+  margin-bottom: 2vh;
+}
+.login-component-login-btn-text {
+  font-family: var(--font-family);
+  font-weight: 400;
+  font-size: 1em;
+}
+.login-component-error-text {
+  padding: 10px;
+  font-family: var(--font-family);
+  font-weight: 400;
+  font-size: 1em;
+  color: red;
+}

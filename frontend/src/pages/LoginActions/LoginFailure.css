@@ -1,0 +1,17 @@
+.login-failed-page-container {
+  text-align: center;
+  padding-top: 40vh;
+}
+.login-failed-page-line1 {
+  color: red;
+  font-family: var(--font-family);
+  font-weight: 700;
+  font-size: 3em;
+}
+.login-failed-page-line2 {
+  color: white;
+  font-family: var(--font-family);
+  font-weight: 400;
+  font-size: 1.5em;
+  margin-bottom: 5vh;
+}

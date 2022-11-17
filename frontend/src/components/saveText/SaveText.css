@@ -1,0 +1,12 @@
+.save-text-container {
+  text-align: center;
+}
+.save-text-container-textarea {
+  margin-bottom: 1vh;
+}
+
+.save-text-save-btn {
+  margin-bottom: 4vh;
+  display: flex;
+  flex-direction: column;
+}
